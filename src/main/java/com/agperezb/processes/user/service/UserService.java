@@ -19,7 +19,15 @@ public record UserService(UserRepository userRepository) {
         return this.userRepository.findById(id);
     }
 
+    public List<User> findByName(String name) {
+        return this.userRepository.findAllByUserName(name);
+    }
+
     public User save(User user) {
         return this.userRepository.save(user);
+    }
+
+    public void delete(User user) {
+        this.userRepository.delete(user);
     }
 }

@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -21,18 +20,65 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/user")
     public ResponseEntity<List<User>> getAll() {
         return new ResponseEntity<>(this.userService.getAll(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/user/{id}")
     public ResponseEntity<?> getById(@PathVariable UUID id) {
-        return new ResponseEntity<>(this.userService.findById(id), HttpStatus.OK);
+        Optional<User> user = this.userService.findById(id);
+        if (user.isPresent()) {
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/")
-    public User getById(@RequestBody User user) {
-        return this.userService.save(user);
+    @GetMapping("/user/{name}")
+    public ResponseEntity<?> getByName(@PathVariable String name) {
+        List<User> user = this.userService.findByName(name);
+        if (user.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        }
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @PostMapping("/user")
+    public ResponseEntity<?> save(@RequestBody User user) {
+        try {
+            User userSave = this.userService.save(user);
+            return new ResponseEntity<>(userSave, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody User user) {
+        try {
+            Optional<User> userBd = this.userService.findById(id);
+            if (userBd.isPresent()) {
+                User userUpdate = this.userService.save(user);
+                return new ResponseEntity<>(userUpdate, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<?> delete(@PathVariable UUID id){
+        Optional<User> userBD = userService.findById(id);
+        if(userBD.isPresent()){
+            userService.delete(userBD.get());
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
     }
 }
